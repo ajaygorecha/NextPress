@@ -17,40 +17,36 @@ export default async function Topbar({ title }: Props) {
     <header className="topbar">
       <span className="topbar-title">{title}</span>
 
-      <div className="d-flex align-items-center gap-3">
-        <Link href="/blog" target="_blank" className="btn btn-sm btn-outline-secondary">
-          <i className="ri-external-link-line me-1" />
-          View Site
-        </Link>
-
+      <div className="d-flex align-items-center gap-2">
         <div className="dropdown">
           <button
-            className="btn btn-sm d-flex align-items-center gap-2 border-0 bg-transparent p-0"
+            className="topbar-user-btn"
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <div
-              className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-              style={{ width: 32, height: 32, fontSize: '0.85rem', fontWeight: 600 }}
-            >
-              {initial}
-            </div>
-            <span className="small d-none d-md-inline text-muted">{displayName}</span>
-            <i className="ri-arrow-down-s-line text-muted small" />
+            <div className="topbar-avatar">{initial}</div>
+            <span className="topbar-username d-none d-md-inline">{displayName}</span>
+            <i className="ri-arrow-down-s-line topbar-chevron" />
           </button>
 
-          <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0">
+          <ul className="dropdown-menu dropdown-menu-end">
+            <li className="dropdown-user-info">
+              <div className="topbar-avatar topbar-avatar--lg">{initial}</div>
+              <div>
+                <div className="fw-bold small">{displayName}</div>
+                <div style={{ fontSize: '0.72rem', color: '#9ca3af' }}>{user?.email}</div>
+              </div>
+            </li>
+            <li><hr className="dropdown-divider" /></li>
             <li>
               <Link href="/admin/settings" className="dropdown-item">
-                <i className="ri-settings-3-line me-2" />
+                <i className="ri-settings-4-line" />
                 Settings
               </Link>
             </li>
             <li><hr className="dropdown-divider" /></li>
-            <li>
-              <LogoutButton />
-            </li>
+            <li><LogoutButton /></li>
           </ul>
         </div>
       </div>

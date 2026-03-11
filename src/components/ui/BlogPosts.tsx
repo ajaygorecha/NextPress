@@ -3,20 +3,10 @@
 import { useState } from 'react'
 import PostCard from './PostCard'
 import Link from 'next/link'
-
-interface Post {
-  id: string
-  title: string
-  slug: string
-  content: string
-  featured_image: string | null
-  created_at: string
-  status: string
-  [key: string]: any
-}
+import type { Post } from '@/types'
 
 interface Props {
-  posts: Post[]
+  posts: (Post & { [key: string]: any })[]
   count: number
   q?: string
   currentPage: number
@@ -108,7 +98,7 @@ export default function BlogPosts({ posts, count, q, currentPage, totalPages }: 
   )
 }
 
-function PostListItem({ post }: { post: Post }) {
+function PostListItem({ post }: { post: Post & { [key: string]: any } }) {
   const excerpt = post.content
     ? post.content.replace(/<[^>]*>/g, '').slice(0, 160) + '…'
     : ''
