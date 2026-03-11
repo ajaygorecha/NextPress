@@ -53,7 +53,7 @@ export default function BlogPosts({ posts, count, q, currentPage, totalPages }: 
         <div className={layout === 'grid' ? 'row g-4' : 'posts-list'}>
           {posts.map((post) =>
             layout === 'grid' ? (
-              <div key={post.id} className="col-sm-6">
+              <div key={post.id} className="col-sm-6 col-lg-4">
                 <PostCard post={post} />
               </div>
             ) : (

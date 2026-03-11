@@ -1,9 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import Topbar from '@/components/ui/Topbar'
+import SidebarWidgetSettings from '@/components/forms/SidebarWidgetSettings'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [{ data: { user } }, { data: sidebarSetting }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from('settings').select('value').eq('key', 'sidebar_widgets').single(),
+  ])
+
+  const sidebarWidgets: Record<string, boolean> = sidebarSetting?.value ?? {
+    categories: true,
+    recent_posts: true,
+    tags: true,
+  }
 
   return (
     <>
@@ -27,6 +37,14 @@ export default async function SettingsPage() {
                   Reset Password
                 </a>
               </div>
+            </div>
+          </div>
+
+          <div className="col-md-6">
+            <div className="card form-card p-4">
+              <h6 className="fw-semibold mb-1">Blog Sidebar Widgets</h6>
+              <p className="text-muted small mb-3">Choose which widgets appear on the post detail sidebar.</p>
+              <SidebarWidgetSettings initial={sidebarWidgets} />
             </div>
           </div>
 

@@ -153,6 +153,45 @@ create policy "post_tags_select" on public.post_tags
 create policy "post_tags_write" on public.post_tags
   for all using (auth.uid() is not null);
 
+-- ── Settings ──────────────────────────────────────────────────────────────────
+
+create table if not exists public.settings (
+  key    text primary key,
+  value  jsonb not null
+);
+
+alter table public.settings enable row level security;
+
+create policy "settings_select" on public.settings
+  for select using (true);
+
+create policy "settings_write" on public.settings
+  for all using (public.is_admin());
+
+-- Default sidebar widget settings
+insert into public.settings (key, value)
+values ('sidebar_widgets', '{"categories": true, "recent_posts": true}')
+on conflict (key) do nothing;
+
+-- ── Page Views (Analytics) ───────────────────────────────────────────────────
+
+create table if not exists public.page_views (
+  id         bigserial primary key,
+  path       text not null,
+  referrer   text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.page_views enable row level security;
+
+-- Anyone can insert (anonymous tracking)
+create policy "page_views_insert" on public.page_views
+  for insert with check (true);
+
+-- Only admins can read
+create policy "page_views_select" on public.page_views
+  for select using (public.is_admin());
+
 -- ── Storage ───────────────────────────────────────────────────────────────────
 -- Create a bucket named 'media' in Supabase Dashboard > Storage
 -- Then set these policies:

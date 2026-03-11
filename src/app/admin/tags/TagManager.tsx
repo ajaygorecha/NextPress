@@ -48,16 +48,16 @@ export default function TagManager({ tags }: { tags: Tag[] }) {
                 <p className="text-muted">No tags yet.</p>
               )}
               {tags.map((tag) => (
-                <div key={tag.id} className="badge bg-light text-dark border d-flex align-items-center gap-2 px-3 py-2">
+                <div key={tag.id} className="tag-chip-admin">
                   <span>{tag.name}</span>
                   <button
                     type="button"
-                    className="btn-close"
-                    style={{ fontSize: '0.6rem' }}
                     onClick={() => handleDelete(tag.id)}
                     disabled={isPending}
                     title="Delete"
-                  />
+                  >
+                    <i className="ri-close-line" />
+                  </button>
                 </div>
               ))}
             </div>

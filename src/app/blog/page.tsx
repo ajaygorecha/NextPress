@@ -150,49 +150,19 @@ export default async function BlogPage({ searchParams }: Props) {
       {/* Posts body */}
       <div className="blog-body">
         <div className="container">
-          <div className="row g-5">
-            <div className="col-lg-8">
-              {!q && (
-                <div className="section-heading">
-                  <h2 className="section-title">Latest Articles</h2>
-                  <div className="section-line" />
-                </div>
-              )}
-              <BlogPosts
-                posts={posts || []}
-                count={count || 0}
-                q={q}
-                currentPage={currentPage}
-                totalPages={totalPages}
-              />
+          {!q && (
+            <div className="section-heading">
+              <h2 className="section-title">Latest Articles</h2>
+              <div className="section-line" />
             </div>
-
-            {/* Sidebar */}
-            <div className="col-lg-4">
-              <aside className="blog-sidebar">
-                <div className="sidebar-widget">
-                  <h6 className="widget-title">
-                    <i className="ri-folder-3-line me-2" />
-                    Categories
-                  </h6>
-                  {categories && categories.length > 0 ? (
-                    <ul className="widget-list">
-                      {categories.map((cat) => (
-                        <li key={cat.id}>
-                          <Link href={`/category/${cat.slug}`}>
-                            <span>{cat.name}</span>
-                            <i className="ri-arrow-right-s-line" />
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-muted small mb-0">No categories yet.</p>
-                  )}
-                </div>
-              </aside>
-            </div>
-          </div>
+          )}
+          <BlogPosts
+            posts={posts || []}
+            count={count || 0}
+            q={q}
+            currentPage={currentPage}
+            totalPages={totalPages}
+          />
         </div>
       </div>
 
