@@ -67,8 +67,16 @@ export default function MediaLibrary({ files, supabaseUrl }: Props) {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  const isImage = (mime: string) => mime?.startsWith('image/')
-  const isVideo = (mime: string) => mime?.startsWith('video/')
+  const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif']
+  const VIDEO_EXTS = ['mp4', 'webm', 'ogg', 'mov']
+
+  const getExt = (name: string) => name.split('.').pop()?.toLowerCase() || ''
+
+  const isImage = (file: FileObject) =>
+    file.metadata?.mimetype?.startsWith('image/') || IMAGE_EXTS.includes(getExt(file.name))
+
+  const isVideo = (file: FileObject) =>
+    file.metadata?.mimetype?.startsWith('video/') || VIDEO_EXTS.includes(getExt(file.name))
 
   return (
     <>
@@ -110,14 +118,13 @@ export default function MediaLibrary({ files, supabaseUrl }: Props) {
         <div className="media-grid">
           {files.map((file) => {
             const url = getPublicUrl(supabaseUrl, file.name)
-            const mime = file.metadata?.mimetype || ''
 
             return (
               <div key={file.id} className="media-item">
-                {isImage(mime) ? (
+                {isImage(file) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={url} alt={file.name} onClick={() => setPreview(file)} />
-                ) : isVideo(mime) ? (
+                ) : isVideo(file) ? (
                   <video src={url} muted onClick={() => setPreview(file)} />
                 ) : (
                   <div className="d-flex align-items-center justify-content-center bg-light"
@@ -154,7 +161,7 @@ export default function MediaLibrary({ files, supabaseUrl }: Props) {
                 <button className="btn-close" onClick={() => setPreview(null)} />
               </div>
               <div className="modal-body text-center p-2">
-                {preview.metadata?.mimetype?.startsWith('image/') ? (
+                {isImage(preview) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={getPublicUrl(supabaseUrl, preview.name)}

@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { createPost, updatePost } from '@/lib/actions/posts'
 import RichEditor from '@/components/editor/RichEditor'
+import { createClient } from '@/lib/supabase/client'
 import type { Post, Category, Tag } from '@/types'
 
 interface Props {
@@ -15,7 +16,38 @@ interface Props {
 export default function PostForm({ post, categories, tags, postTags = [] }: Props) {
   const [isPending, startTransition] = useTransition()
   const [selectedTags, setSelectedTags] = useState<string[]>(postTags.map((t) => t.id))
+  const [featuredImage, setFeaturedImage] = useState(post?.featured_image || '')
+  const [mediaOpen, setMediaOpen] = useState(false)
+  const [mediaFiles, setMediaFiles] = useState<{ name: string; url: string }[]>([])
+  const [mediaLoading, setMediaLoading] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+
+  async function openMediaPicker() {
+    setMediaOpen(true)
+    if (mediaFiles.length > 0) return
+    setMediaLoading(true)
+    const supabase = createClient()
+    const { data } = await supabase.storage.from('media').list('', {
+      sortBy: { column: 'created_at', order: 'desc' },
+      limit: 100,
+    })
+    const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif']
+    const files = (data || [])
+      .filter(f => IMAGE_EXTS.includes(f.name.split('.').pop()?.toLowerCase() || ''))
+      .map(f => ({
+        name: f.name,
+        url: `${supabaseUrl}/storage/v1/object/public/media/${f.name}`,
+      }))
+    setMediaFiles(files)
+    setMediaLoading(false)
+  }
+
+  function selectMedia(url: string) {
+    setFeaturedImage(url)
+    setMediaOpen(false)
+  }
 
   function toggleTag(id: string) {
     setSelectedTags((prev) =>
@@ -123,14 +155,33 @@ export default function PostForm({ post, categories, tags, postTags = [] }: Prop
           {/* Featured Image */}
           <div className="card form-card p-4 mb-4">
             <h6 className="fw-semibold mb-3">Featured Image</h6>
+            {featuredImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={featuredImage}
+                alt="Featured"
+                className="featured-image-preview mb-3"
+              />
+            )}
             <input
               name="featured_image"
               type="url"
-              className="form-control"
+              className="form-control mb-2"
               placeholder="https://..."
-              defaultValue={post?.featured_image || ''}
+              value={featuredImage}
+              onChange={e => setFeaturedImage(e.target.value)}
             />
-            <small className="text-muted mt-1 d-block">Enter an image URL</small>
+            <div className="d-flex gap-2">
+              <button type="button" className="btn btn-outline-secondary btn-sm flex-1" onClick={openMediaPicker}>
+                <i className="ri-image-line me-1" />
+                Select from Media
+              </button>
+              {featuredImage && (
+                <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => setFeaturedImage('')}>
+                  <i className="ri-close-line" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Category */}
@@ -169,6 +220,55 @@ export default function PostForm({ post, categories, tags, postTags = [] }: Prop
           </div>
         </div>
       </div>
+      {/* Media Picker Modal */}
+      {mediaOpen && (
+        <div className="modal d-block media-picker-backdrop" onClick={() => setMediaOpen(false)}>
+          <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" onClick={e => e.stopPropagation()}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h6 className="modal-title fw-semibold">
+                  <i className="ri-image-line me-2 text-primary" />
+                  Select from Media Library
+                </h6>
+                <button className="btn-close" onClick={() => setMediaOpen(false)} />
+              </div>
+              <div className="modal-body">
+                {mediaLoading ? (
+                  <div className="text-center py-5">
+                    <span className="spinner-border text-primary" />
+                    <p className="text-muted mt-2 small">Loading media…</p>
+                  </div>
+                ) : mediaFiles.length === 0 ? (
+                  <div className="text-center py-5 text-muted">
+                    <i className="ri-image-line" style={{ fontSize: '3rem' }} />
+                    <p className="mt-2">No images in media library yet.</p>
+                  </div>
+                ) : (
+                  <div className="media-picker-grid">
+                    {mediaFiles.map(file => (
+                      <button
+                        key={file.name}
+                        type="button"
+                        className={`media-picker-item ${featuredImage === file.url ? 'selected' : ''}`}
+                        onClick={() => selectMedia(file.url)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={file.url} alt={file.name} />
+                        {featuredImage === file.url && (
+                          <div className="media-picker-check">
+                            <i className="ri-check-line" />
+                          </div>
+                        )}
+                        <div className="media-picker-name">{file.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }
